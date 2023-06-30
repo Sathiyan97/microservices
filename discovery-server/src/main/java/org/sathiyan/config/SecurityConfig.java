@@ -1,36 +1,60 @@
 package org.sathiyan.config;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
-import org.springframework.security.crypto.password.NoOpPasswordEncoder;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.provisioning.InMemoryUserDetailsManager;
+import org.springframework.security.web.SecurityFilterChain;
+
+import static org.springframework.security.config.Customizer.withDefaults;
 
 @Configuration
 @EnableWebSecurity
-public class SecurityConfig extends WebSecurityConfigurerAdapter {
+public class SecurityConfig {
 
     @Value("${eureka.username}")
     private String userName;
     @Value("${eureka.password}")
     private String password;
 
-    @Override
-    public void configure(AuthenticationManagerBuilder authenticationManagerBuilder) throws Exception {
-        authenticationManagerBuilder.inMemoryAuthentication()
-                .passwordEncoder(NoOpPasswordEncoder.getInstance())
-                .withUser(userName).password(password)
-                .authorities("USER");
+    @Bean
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        http
+                .authorizeHttpRequests((auth) -> auth
+                        .anyRequest().authenticated()
+                )
+                .httpBasic(withDefaults());
+        return http.build();
     }
 
-    @Override
-    public void configure(HttpSecurity httpSecurity) throws Exception {
-        httpSecurity.csrf().disable()
-                .authorizeRequests().anyRequest()
-                .authenticated()
-                .and()
-                .httpBasic();
+    @Bean
+    public InMemoryUserDetailsManager configure() {
+        UserDetails user = User.withDefaultPasswordEncoder()
+                .username(userName)
+                .password(password)
+                .roles("USER")
+                .build();
+        return new InMemoryUserDetailsManager(user);
     }
+
+//    @Override
+//    public void configure(AuthenticationManagerBuilder authenticationManagerBuilder) throws Exception {
+//        authenticationManagerBuilder.inMemoryAuthentication()
+//                .passwordEncoder(NoOpPasswordEncoder.getInstance())
+//                .withUser(userName).password(password)
+//                .authorities("USER");
+//    }
+
+//    @Override
+//    public void configure(HttpSecurity httpSecurity) throws Exception {
+//        httpSecurity.csrf().disable()
+//                .authorizeRequests().anyRequest()
+//                .authenticated()
+//                .and()
+//                .httpBasic();
+//    }
 }
