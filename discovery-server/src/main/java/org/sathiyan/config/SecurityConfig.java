@@ -40,21 +40,4 @@ public class SecurityConfig {
                 .build();
         return new InMemoryUserDetailsManager(user);
     }
-
-//    @Override
-//    public void configure(AuthenticationManagerBuilder authenticationManagerBuilder) throws Exception {
-//        authenticationManagerBuilder.inMemoryAuthentication()
-//                .passwordEncoder(NoOpPasswordEncoder.getInstance())
-//                .withUser(userName).password(password)
-//                .authorities("USER");
-//    }
-
-//    @Override
-//    public void configure(HttpSecurity httpSecurity) throws Exception {
-//        httpSecurity.csrf().disable()
-//                .authorizeRequests().anyRequest()
-//                .authenticated()
-//                .and()
-//                .httpBasic();
-//    }
 }
