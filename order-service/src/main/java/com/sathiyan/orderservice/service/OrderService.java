@@ -3,11 +3,13 @@ package com.sathiyan.orderservice.service;
 import com.sathiyan.orderservice.dto.InventoryResponse;
 import com.sathiyan.orderservice.dto.OrderLineItemsDto;
 import com.sathiyan.orderservice.dto.OrderRequest;
+import com.sathiyan.orderservice.event.OrderPlaceEvent;
 import com.sathiyan.orderservice.model.Order;
 import com.sathiyan.orderservice.model.OrderLineItems;
 import com.sathiyan.orderservice.repository.OrderRepository;
 import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -22,6 +24,8 @@ import java.util.UUID;
 public class OrderService {
     private final OrderRepository orderRepository;
     private final WebClient.Builder webClientBuilder;
+
+    private final KafkaTemplate<String,OrderPlaceEvent> kafkaTemplate;
 
     public String placeOrder(OrderRequest orderRequest) {
         Order order = new Order();
@@ -46,6 +50,7 @@ public class OrderService {
 
         if (allSkuCode) {
             orderRepository.save(order);
+            kafkaTemplate.send("notificationTopic",new OrderPlaceEvent(order.getOrderNumber()));
             return "Order placed Successfully";
         } else {
             throw new IllegalArgumentException("Product not in stock , please try again later");
